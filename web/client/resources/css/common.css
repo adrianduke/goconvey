@@ -456,6 +456,11 @@ footer .server-down {
 	width: 1em;
 }
 
+.story-pkg-watch-td a {
+	float: right;
+	margin-right: 1em;
+}
+
 .story-line {
 	font: 12px 'Open Sans', sans-serif;
 	cursor: default;
