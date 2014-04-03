@@ -16,11 +16,13 @@ type (
 		LongPollStatus(writer http.ResponseWriter, request *http.Request)
 		Results(writer http.ResponseWriter, request *http.Request)
 		Execute(writer http.ResponseWriter, request *http.Request)
+		TogglePause(writer http.ResponseWriter, request *http.Request)
 	}
 
 	Executor interface {
 		ExecuteTests([]*Package) *CompleteOutput
 		Status() string
+		ClearStatusFlag() bool
 	}
 
 	Scanner interface {
@@ -49,7 +51,7 @@ type (
 	}
 
 	Shell interface {
-		GoTest(directory string) (output string, err error)
+		GoTest(directory, packageName string) (output string, err error)
 		Getenv(key string) string
 		Setenv(key, value string) error
 	}

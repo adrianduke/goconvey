@@ -3,10 +3,7 @@
 // packages from this project as they serve internal purposes.
 package convey
 
-import (
-	"github.com/smartystreets/goconvey/execution"
-	"github.com/smartystreets/goconvey/reporting"
-)
+import "github.com/smartystreets/goconvey/convey/reporting"
 
 // Convey is the method intended for use when declaring the scopes
 // of a specification. Each scope has a description and a func()
@@ -35,26 +32,39 @@ func Convey(items ...interface{}) {
 // The reporter will be notified that this step was skipped.
 func SkipConvey(items ...interface{}) {
 	entry := discover(items)
-	entry.Action = execution.NewSkippedAction(skipReport)
+	entry.action = newSkippedAction(skipReport)
 	register(entry)
 }
 
-func register(entry *execution.Registration) {
+// FocusConvey is has the inverse effect of SkipConvey. If the top-level
+// Convey is changed to `FocusConvey`, only nested scopes that are defined
+// with FocusConvey will be run. The rest will be ignored completely. This
+// is handy when debugging a large suite that runs a misbehaving function
+// repeatedly as you can disable all but one of that function
+// without swaths of `SkipConvey` calls, just a targeted chain of calls
+// to FocusConvey.
+func FocusConvey(items ...interface{}) {
+	entry := discover(items)
+	entry.Focus = true
+	register(entry)
+}
+
+func register(entry *registration) {
 	if entry.IsTopLevel() {
 		suites.Run(entry)
 	} else {
-		suites.CurrentRunner().Register(entry)
+		suites.Current().Register(entry)
 	}
 }
 
 func skipReport() {
-	suites.CurrentReporter().Report(reporting.NewSkipReport())
+	suites.Current().Report(reporting.NewSkipReport())
 }
 
 // Reset registers a cleanup function to be run after each Convey()
 // in the same scope. See the examples package for a simple use case.
 func Reset(action func()) {
-	suites.CurrentRunner().RegisterReset(execution.NewAction(action))
+	suites.Current().RegisterReset(newAction(action))
 }
 
 // So is the means by which assertions are made against the system under test.
@@ -66,9 +76,9 @@ func Reset(action func()) {
 // documentation on specific assertion methods.
 func So(actual interface{}, assert assertion, expected ...interface{}) {
 	if result := assert(actual, expected...); result == assertionSuccess {
-		suites.CurrentReporter().Report(reporting.NewSuccessReport())
+		suites.Current().Report(reporting.NewSuccessReport())
 	} else {
-		suites.CurrentReporter().Report(reporting.NewFailureReport(result))
+		suites.Current().Report(reporting.NewFailureReport(result))
 	}
 }
 

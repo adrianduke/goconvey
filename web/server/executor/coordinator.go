@@ -1,7 +1,6 @@
 package executor
 
 import (
-	"fmt"
 	"log"
 	"sync"
 
@@ -36,7 +35,7 @@ func (self *concurrentCoordinator) worker(id int) {
 			continue
 		}
 		log.Printf("Executing concurrent tests: %s\n", folder.Name)
-		folder.Output, folder.Error = self.shell.GoTest(folder.Path)
+		folder.Output, folder.Error = self.shell.GoTest(folder.Path, folder.Name)
 	}
 	self.waiter.Done()
 }
@@ -54,11 +53,14 @@ func (self *concurrentCoordinator) awaitCompletion() {
 
 func (self *concurrentCoordinator) checkForErrors() {
 	for _, folder := range self.folders {
-		if folder.Error != nil && folder.Output == "" {
-			fmt.Println(folder.Path, folder.Error)
+		if hasUnexpectedError(folder) {
+			log.Println("Unexpected error at", folder.Path)
 			panic(folder.Error)
 		}
 	}
+}
+func hasUnexpectedError(folder *contract.Package) bool {
+	return folder.Error != nil && folder.Output == ""
 }
 
 func newCuncurrentCoordinator(folders []*contract.Package, batchSize int, shell contract.Shell) *concurrentCoordinator {

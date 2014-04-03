@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/smartystreets/goconvey/reporting"
+	"github.com/smartystreets/goconvey/convey/reporting"
 )
 
 type Package struct {
@@ -28,6 +28,7 @@ func NewPackage(path string) *Package {
 type CompleteOutput struct {
 	Packages []*PackageResult
 	Revision string
+	Paused   bool
 }
 
 var ( // PackageResult.Outcome values:
